@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: charitycheck
+      POSTGRES_USER: charitycheck
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD before starting PostgreSQL}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - charitycheck_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U charitycheck -d charitycheck"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  charitycheck_db:
