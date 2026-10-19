@@ -4,7 +4,7 @@ import type { VerificationInput } from "./schema.js";
 export type BankResult =
   | { kind: "confirmed"; holderName: string; source: string }
   | { kind: "not_found"; source: string }
-  | { kind: "unavailable"; source: string };
+  | { kind: "unavailable"; source: string; code?: string; reason?: string };
 export interface BankProvider {
   id: string;
   inquire(

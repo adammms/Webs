@@ -15,3 +15,7 @@ Frontend dan API berada dalam satu service dan domain. Database diakses dari bac
 Batasan MVP: rate limiter masih memory satu proses dan tidak mempercayai header forwarded. Di belakang proxy, pengguna dapat berbagi kuota IP yang sama; sesuaikan limiter/proxy tepercaya sebelum pemakaian publik berskala besar. Tidak ada API verifikasi bank resmi atau dashboard internal yang diaktifkan.
 
 Docker image, volume, secret dan deployment belum otomatis dibuat di akun Railway hanya dengan menambahkan konfigurasi ini. Pengaturan akun dan biaya dikendalikan melalui dashboard Railway.
+
+## Mengaktifkan pemeriksaan rekening nyata
+
+Ikuti [MIDTRANS.md](MIDTRANS.md). Tambahkan `BANK_PROVIDER=midtrans-iris` serta `MIDTRANS_IRIS_API_KEY` pada service aplikasi hanya setelah akses production disetujui. Tanpa keduanya, default tetap tidak melakukan inquiry. Adapter tersedia pada branch `codex/iris-verification`; gunakan versi kode tersebut atau merge ke branch deployment. Registrasi identitas belum terhubung.

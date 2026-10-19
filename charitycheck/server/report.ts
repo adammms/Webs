@@ -71,9 +71,10 @@ export async function createReport(
       else
         payment = finding(
           "unavailable",
-          "Belum terverifikasi. Format rekening sesuai aturan umum, tetapi penyedia resmi belum tersedia.",
+          result.reason ??
+            "Belum terverifikasi. Format rekening sesuai aturan umum, tetapi penyedia resmi belum tersedia.",
           result.source,
-          "provider_unavailable",
+          result.code ?? "provider_unavailable",
         );
     } catch (e) {
       payment = finding(

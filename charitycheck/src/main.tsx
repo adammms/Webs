@@ -42,6 +42,20 @@ function App() {
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0),
     [tab, setTab] = useState<"bank" | "qris">("bank");
+  const [providerConfigured, setProviderConfigured] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/capabilities", { signal: controller.signal })
+      .then((r) => {
+        if (!r.ok) throw new Error("unavailable");
+        return r.json();
+      })
+      .then((data) =>
+        setProviderConfigured(data.bankProvider?.configured === true),
+      )
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
   const generation = useRef(0),
     reportRef = useRef<HTMLElement>(null);
   const validation = verificationSchema.safeParse(form);
@@ -464,9 +478,9 @@ function App() {
               <div>
                 <h3>Transparan sejak awal</h3>
                 <p>
-                  Penyedia verifikasi resmi belum terhubung. Hasil saat ini
-                  memeriksa kelengkapan dan format, bukan mengonfirmasi
-                  kepemilikan rekening.
+                  {providerConfigured
+                    ? "Integrasi pemeriksaan rekening sudah dikonfigurasi. Hasil mengikuti respons penyedia pada setiap pemeriksaan; legalitas penerima dan keaslian kampanye tetap belum dikonfirmasi."
+                    : "Penyedia verifikasi resmi belum dikonfigurasi. Hasil saat ini memeriksa kelengkapan dan format, bukan mengonfirmasi kepemilikan rekening."}
                 </p>
                 <a href="#tentang">
                   Pahami batasan pemeriksaan <ArrowUpRight size={13} />

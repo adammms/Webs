@@ -4,6 +4,7 @@ import path from "node:path";
 import express from "express";
 import { createApp } from "./app.js";
 import { postgresAudit } from "./audit.js";
+import { configureBankProvider } from "./provider-config.js";
 if (!process.env.DATABASE_URL || !process.env.AUDIT_HMAC_KEY)
   throw new Error("DATABASE_URL dan AUDIT_HMAC_KEY wajib diatur.");
 const pool = new Pool({
@@ -21,7 +22,12 @@ const audit = postgresAudit(
 await audit.health();
 const app = createApp({
   audit,
-  origin: process.env.APP_ORIGIN ?? (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : "http://127.0.0.1:5173"),
+  bank: configureBankProvider(process.env),
+  origin:
+    process.env.APP_ORIGIN ??
+    (process.env.RAILWAY_PUBLIC_DOMAIN
+      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+      : "http://127.0.0.1:5173"),
 });
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.resolve("dist")));
@@ -37,8 +43,11 @@ const interval = setInterval(() => {
   void cleanup().catch(() => console.error("audit_cleanup_failed"));
 }, 3600000);
 interval.unref();
-const server = app.listen(Number(process.env.PORT ?? 3001), process.env.HOST ?? (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1"), () =>
-  console.log("CharityCheck API siap."),
+const server = app.listen(
+  Number(process.env.PORT ?? 3001),
+  process.env.HOST ??
+    (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1"),
+  () => console.log("CharityCheck API siap."),
 );
 for (const signal of ["SIGINT", "SIGTERM"])
   process.on(signal, () => {

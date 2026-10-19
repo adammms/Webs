@@ -1,6 +1,6 @@
 # CharityCheck — MVP Phase 1–3
 
-Aplikasi pemeriksaan informasi donasi berbahasa Indonesia. Tidak menerima atau menyalurkan uang. **Saat ini tidak ada penyedia rekening atau registrasi resmi yang terhubung.** Data lengkap dan format sesuai tetap menghasilkan **Tidak Dapat Diverifikasi / Belum terverifikasi**, bukan konfirmasi rekening aktif atau donasi aman.
+Aplikasi pemeriksaan informasi donasi berbahasa Indonesia. Tidak menerima atau menyalurkan uang. **Default aplikasi belum mengaktifkan penyedia rekening atau registrasi resmi.** Adapter Midtrans Iris production tersedia tetapi memerlukan akses dan API key; lihat [MIDTRANS.md](MIDTRANS.md). Data lengkap dan format sesuai tetap menghasilkan **Tidak Dapat Diverifikasi / Belum terverifikasi**, bukan konfirmasi rekening aktif atau donasi aman.
 
 Aplikasi berada di subdirektori `charitycheck/` karena audit awal menemukan portfolio statis yang tidak memiliki backend, database, atau fungsi verifikasi. Seluruh file portfolio asli dipertahankan. Lihat [AUDIT.md](AUDIT.md) untuk gap P0/P1 dan status implementasi.
 
@@ -34,7 +34,7 @@ npm run test:browser
 CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
 ```
 
-`npm test` menjalankan 22 tes termasuk PostgreSQL nyata, migrasi berulang di schema terisolasi, minimasi audit, penghapusan data, validasi, status provider, timeout, masking, error, rate limit, dan pembatasan akses. DATABASE_URL wajib; tes DB tidak dilewati diam-diam. Akun DB pengujian perlu izin CREATE/DROP SCHEMA pada database pengujian. Jangan gunakan database produksi untuk tes. Fixture provider hanya terdapat pada tes, tidak dapat diaktifkan pada aplikasi.
+`npm test` menjalankan 43 tes termasuk PostgreSQL nyata, migrasi berulang di schema terisolasi, minimasi audit, penghapusan data, validasi, status provider, timeout, masking, error, rate limit, dan pembatasan akses. DATABASE_URL wajib; tes DB tidak dilewati diam-diam. Akun DB pengujian perlu izin CREATE/DROP SCHEMA pada database pengujian. Jangan gunakan database produksi untuk tes. Fixture provider hanya terdapat pada tes, tidak dapat diaktifkan pada aplikasi.
 
 Tes browser menguji frontend dan API nyata, debounce, input belum lengkap, masking, respons lama yang datang terlambat, error/retry, tampilan mobile tanpa overflow, serta status QRIS yang belum tersedia. Penundaan/error jaringan hanya disuntikkan dari runner tes. Screenshot lokal ditulis ke direktori ignored `playwright-results/`.
 
@@ -45,7 +45,7 @@ npm run build
 NODE_ENV=production APP_ORIGIN=https://domain-anda.example npm start
 ```
 
-Backend production melayani `dist/` dan API pada `0.0.0.0` (dapat diubah dengan `HOST`); development tetap loopback. Pasang reverse proxy HTTPS untuk deployment; pastikan `APP_ORIGIN` cocok. Default CSP Helmet membatasi resource ke origin sendiri; aplikasi tidak memerlukan CDN/font eksternal. Runtime produksi tidak memiliki mock provider.
+Backend production melayani `dist/` dan API pada `0.0.0.0` (dapat diubah dengan `HOST`); development tetap loopback. Pasang reverse proxy HTTPS untuk deployment; pastikan `APP_ORIGIN` cocok. Default CSP Helmet membatasi resource ke origin sendiri; aplikasi tidak memerlukan CDN/font eksternal. Runtime produksi tidak memiliki mock provider. `BANK_PROVIDER=none` adalah default; pilih `midtrans-iris` dan atur `MIDTRANS_IRIS_API_KEY` hanya setelah akses resmi disetujui.
 
 Ini adalah MVP untuk pengujian, bukan deployment publik yang sudah diperkeras. Rate limit memakai memory satu proses (15 permintaan/menit/IP). Jangan mengaktifkan `trust proxy` sembarangan; untuk banyak instance gunakan limiter bersama serta konfigurasi proxy tepercaya. History/dashboard publik sengaja tidak tersedia; implementasikan autentikasi dan otorisasi peran sebelum membuka audit internal. Gunakan role PostgreSQL khusus aplikasi dengan hak minimum, role migrasi terpisah, TLS database terverifikasi, dan password unik di deployment. Password pada contoh Compose hanya untuk development loopback.
 
@@ -70,6 +70,6 @@ Lihat [RAILWAY.md](RAILWAY.md) untuk deployment frontend + backend + PostgreSQL 
 
 ## Sebelum Phase 4
 
-Diperlukan pemilihan penyedia rekening resmi, dokumentasi API dan kontrak penggunaan, bank/produk yang didukung, kredensial yang disimpan server-side, tujuan HTTPS yang diizinkan, aturan penyamaran/penggunaan nama, serta perilaku not-found/error/timeout resmi. Tidak ada endpoint eksternal atau respons provider yang dikarang. Sumber registrasi identitas juga memerlukan akses legal dan dokumentasi. Setelah tersedia, implementasikan adapter resmi serta tes integrasi terpisah.
+Adapter Midtrans Iris telah disiapkan berdasarkan SDK resmi dan diuji dengan fixture HTTP. Belum diuji dengan rekening nyata; lihat [MIDTRANS.md](MIDTRANS.md). Diperlukan konfirmasi pemilihan penyedia rekening resmi, dokumentasi API dan kontrak penggunaan, bank/produk yang didukung, kredensial yang disimpan server-side, tujuan HTTPS yang diizinkan, aturan penyamaran/penggunaan nama, serta perilaku not-found/error/timeout resmi. Tidak ada endpoint eksternal atau respons provider yang dikarang. Sumber registrasi identitas juga memerlukan akses legal dan dokumentasi. Setelah tersedia, implementasikan adapter resmi serta tes integrasi terpisah.
 
 QRIS parsing/upload, dokumen pendukung, export, riwayat dan dashboard review adalah P1/Phase 3 extended dari roadmap PRD, belum diimplementasikan. Tab QRIS secara eksplisit menjelaskan keterbatasan dan tidak mengunggah file. Kesimpulan donasi selalu membutuhkan bukti kampanye tambahan; konfirmasi rekening saja tidak menjamin keamanan.

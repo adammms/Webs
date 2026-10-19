@@ -31,3 +31,7 @@ Karena tidak ada implementasi CharityCheck yang dapat diperluas, aplikasi React 
 ## Bukti validasi
 
 22 automated tests mencakup PostgreSQL nyata. Browser smoke menguji desktop 1440 px dan mobile 390 px, input/debounce, report dari API nyata, masking, race respons, retry error, QRIS tidak tersedia, dan tidak ada error JavaScript. Jalankan ulang perintah pada README untuk hasil terbaru.
+
+## Pembaruan Phase 4 — adapter, belum aktivasi live
+
+Adapter read-only Midtrans Iris production ditambahkan berdasarkan sumber SDK resmi, dengan validasi respons, masking backend, timeout dan pemetaan akses/kuota/error. BSI memerlukan kecocokan nama pada daftar bank aktual. Aktivasi eksplisit memerlukan key Iris production. Tambahan tes kontrak memakai transport fixture, bukan pemeriksaan rekening nyata. Registrasi identitas tetap unavailable. Akses dan persetujuan penyedia belum tersedia, sehingga verifikasi nyata masih terblokir. Lihat MIDTRANS.md.

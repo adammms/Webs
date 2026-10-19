@@ -26,7 +26,7 @@ export function createApp(deps: {
     next();
   });
   app.use(
-    "/api",
+    "/api/verifications",
     rateLimit({
       windowMs: 60_000,
       limit: deps.rateLimit ?? 15,
@@ -42,11 +42,20 @@ export function createApp(deps: {
   app.get("/api/health", async (_req, res) => {
     try {
       await deps.audit.health();
-      res.json({ status: "ok", provider: "unavailable" });
+      res.json({ status: "ok", provider: deps.bank?.id ?? "none" });
     } catch {
       res.status(503).json({ error: "Database belum siap." });
     }
   });
+  app.get("/api/capabilities", (_req, res) =>
+    res.json({
+      bankProvider: {
+        id: deps.bank?.id ?? "none",
+        configured: !!deps.bank && deps.bank.id !== "none",
+      },
+      recipientRegistry: false,
+    }),
+  );
   app.get("/api/banks", (_req, res) => res.json(banks));
   app.post("/api/verifications", async (req, res) => {
     if (req.headers.origin && req.headers.origin !== deps.origin)
@@ -59,15 +68,13 @@ export function createApp(deps: {
         .json({ error: "Gunakan format application/json." });
     const parsed = verificationSchema.safeParse(req.body);
     if (!parsed.success)
-      return void res
-        .status(400)
-        .json({
-          error: "Periksa kembali data masukan.",
-          fields: parsed.error.issues.map((i) => ({
-            path: i.path.join("."),
-            message: i.message,
-          })),
-        });
+      return void res.status(400).json({
+        error: "Periksa kembali data masukan.",
+        fields: parsed.error.issues.map((i) => ({
+          path: i.path.join("."),
+          message: i.message,
+        })),
+      });
     const started = Date.now();
     res.on("finish", () =>
       console.info(
@@ -90,12 +97,10 @@ export function createApp(deps: {
       // Never return provider payloads or raw input in errors or responses.
       res.status(201).json(report);
     } catch {
-      res
-        .status(503)
-        .json({
-          error:
-            "Pemeriksaan belum tersimpan. Layanan audit tidak tersedia; silakan coba kembali.",
-        });
+      res.status(503).json({
+        error:
+          "Pemeriksaan belum tersimpan. Layanan audit tidak tersedia; silakan coba kembali.",
+      });
     }
   });
   // History intentionally has no public route. Audit access is restricted to DB roles.
@@ -113,16 +118,14 @@ export function createApp(deps: {
         typeof err === "object" && err !== null && "status" in err
           ? Number(err.status)
           : 500;
-      res
-        .status(status === 413 ? 413 : status === 400 ? 400 : 500)
-        .json({
-          error:
-            status === 413
-              ? "Data terlalu besar. Maksimum 16 KB."
-              : status === 400
-                ? "JSON tidak valid."
-                : "Terjadi kesalahan layanan.",
-        });
+      res.status(status === 413 ? 413 : status === 400 ? 400 : 500).json({
+        error:
+          status === 413
+            ? "Data terlalu besar. Maksimum 16 KB."
+            : status === 400
+              ? "JSON tidak valid."
+              : "Terjadi kesalahan layanan.",
+      });
     },
   );
   return app;
